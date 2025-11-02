@@ -11,10 +11,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Supabase
-  // await Supabase.initialize(
-  //   url: AppConstants.supabaseUrl,
-  //   anonKey: AppConstants.supabaseAnonKey,
-  // );
+  await Supabase.initialize(
+    url: AppConstants.supabaseUrl,
+    anonKey: AppConstants.supabaseAnonKey,
+  );
 
   // Set system UI overlay style for dark theme
   SystemChrome.setSystemUIOverlayStyle(
