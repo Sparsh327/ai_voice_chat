@@ -1,3 +1,5 @@
+// ignore_for_file: dead_null_aware_expression
+
 import 'dart:io';
 
 import 'package:shared_preferences/shared_preferences.dart';

@@ -451,11 +451,8 @@ class ChatController extends GetxController {
     );
   }
 
-  // ==================== AUTH (BONUS - FOR FUTURE) ====================
-
   /// Show login dialog
   void showLoginDialog() {
-    // TODO: Implement login dialog
     Get.snackbar(
       'Login',
       'Login feature coming soon!',
@@ -467,6 +464,5 @@ class ChatController extends GetxController {
   void logout() {
     isLoggedIn.value = false;
     userEmail.value = '';
-    // TODO: Clear user-specific data
   }
 }
