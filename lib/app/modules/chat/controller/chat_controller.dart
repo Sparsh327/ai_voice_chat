@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:ai_voice_chat/app/data/repo/chat_repo.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
@@ -293,16 +295,42 @@ class ChatController extends GetxController {
   }
 
   // ==================== TEXT-TO-SPEECH ====================
+  // ==================== STATE (Add these to your existing state variables) ====================
+
+  // Playing state
+  final playingMessageId = Rx<String?>(null);
+
+  // ==================== VOICE OUTPUT / TTS ====================
 
   /// Play message audio
+  /// Play message audio
   Future<void> playMessageAudio(Message message) async {
+    log('🎵 === Play Audio Requested ===');
+    log('Message ID: ${message.id}');
+    log('Current playing: ${playingMessageId.value}');
+
     try {
+      // If already playing this message, stop it
+      if (playingMessageId.value == message.id) {
+        log('⏹️ Same message playing, stopping...');
+        await stopAudio();
+        return;
+      }
+
+      // If playing another message, stop it first
+      if (playingMessageId.value != null) {
+        log('⏹️ Stopping previous message: ${playingMessageId.value}');
+        await _repository.stopSpeaking();
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+
+      // Set playing state BEFORE starting audio
+      playingMessageId.value = message.id;
       isSpeaking.value = true;
+      log('▶️ Set playing ID: ${playingMessageId.value}');
 
-      await _repository.speak(message.content);
-
-      // Mark audio as played
-      await _repository.updateMessage(message.id, {'audio_played': true});
+      // Mark audio as played immediately
+      _repository.updateMessage(message.id, {'audio_played': true});
 
       // Update local message
       final index = messages.indexWhere((m) => m.id == message.id);
@@ -310,21 +338,86 @@ class ChatController extends GetxController {
         messages[index] = messages[index].copyWith(audioPlayed: true);
         messages.refresh();
       }
+
+      // DON'T AWAIT - Start playing in background with callbacks
+      _repository.speak(
+        message.content,
+        onStart: () {
+          log('🔊 Audio actually started');
+          playingMessageId.value = message.id;
+          isSpeaking.value = true;
+          update();
+        },
+        onComplete: () {
+          log('✅ Audio completed naturally');
+          if (playingMessageId.value == message.id) {
+            playingMessageId.value = null;
+            isSpeaking.value = false;
+            update();
+          }
+        },
+        onError: (error) {
+          log('❌ Audio error: $error');
+          playingMessageId.value = null;
+          isSpeaking.value = false;
+          update();
+          _showError('Audio playback error: $error');
+        },
+      );
+
+      // Force immediate UI update
+      update();
     } catch (e) {
-      _showError('Failed to play audio: $e');
-    } finally {
+      log('❌ Exception in playMessageAudio: $e');
+      playingMessageId.value = null;
       isSpeaking.value = false;
+      update();
+      _showError('Failed to play audio: $e');
     }
   }
 
   /// Stop audio playback
   Future<void> stopAudio() async {
+    log('⏹️ Stop audio called');
     try {
       await _repository.stopSpeaking();
+      playingMessageId.value = null;
       isSpeaking.value = false;
+      update();
+      log('✅ Audio stopped successfully');
     } catch (e) {
+      log('❌ Error stopping audio: $e');
       _showError('Failed to stop audio: $e');
     }
+  }
+
+  /// Pause audio playback
+  Future<void> pauseAudio() async {
+    log('⏸️ Pause audio called');
+    try {
+      await _repository.pauseSpeaking();
+      update();
+    } catch (e) {
+      log('❌ Error pausing audio: $e');
+      _showError('Failed to pause audio: $e');
+    }
+  }
+
+  /// Resume audio playback
+  Future<void> resumeAudio() async {
+    log('▶️ Resume audio called');
+    try {
+      await _repository.resumeSpeaking();
+      update();
+    } catch (e) {
+      log('❌ Error resuming audio: $e');
+      _showError('Failed to resume audio: $e');
+    }
+  }
+
+  /// Check if message is currently playing
+  bool isMessagePlaying(String messageId) {
+    return playingMessageId.value == messageId;
   }
 
   // ==================== UI HELPERS ====================

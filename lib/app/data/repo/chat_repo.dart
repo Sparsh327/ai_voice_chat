@@ -139,8 +139,18 @@ class ChatRepository {
   bool get isListening => _speechService.isListening;
 
   /// Speak text
-  Future<void> speak(String text) async {
-    await _ttsService.speak(text);
+  Future<void> speak(
+    String text, {
+    Function()? onStart,
+    Function()? onComplete,
+    Function(String)? onError,
+  }) async {
+    await _ttsService.speak(
+      text,
+      onStart: onStart,
+      onComplete: onComplete,
+      onError: onError,
+    );
   }
 
   /// Stop speaking
@@ -150,6 +160,18 @@ class ChatRepository {
 
   /// Check if speaking
   bool get isSpeaking => _ttsService.isSpeaking;
+
+  /// Pause speaking
+  Future<void> pauseSpeaking() async {
+    await _ttsService.pause();
+  }
+
+  bool get isTtsPaused => _ttsService.isPaused;
+
+  /// Resume speaking
+  Future<void> resumeSpeaking() async {
+    await _ttsService.resume();
+  }
 
   // ==================== UTILITIES ====================
 

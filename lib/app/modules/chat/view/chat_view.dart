@@ -113,10 +113,7 @@ class ChatView extends GetView<ChatController> {
               itemBuilder: (context, index) {
                 final reversedList = controller.messages.reversed.toList();
                 final message = reversedList[index];
-                return MessageBubble(
-                  message: message,
-                  onPlayAudio: () => controller.playMessageAudio(message),
-                );
+                return MessageBubble(message: message);
               },
             );
           }),

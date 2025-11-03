@@ -24,14 +24,12 @@ class ChatInput extends GetView<ChatController> {
         child: Row(
           children: [
             // Voice Input Button
-            _buildVoiceButton(),
-            const SizedBox(width: 12),
 
             // Text Input Field
             Expanded(child: _buildTextField()),
             const SizedBox(width: 12),
-
-            // Send Button
+            _buildVoiceButton(),
+            const SizedBox(width: 12),
             _buildSendButton(),
           ],
         ),
@@ -62,8 +60,8 @@ class ChatInput extends GetView<ChatController> {
                     isListening
                         ? Colors.red.withValues(alpha: 0.5)
                         : AppTheme.primaryPurple.withValues(alpha: 0.5),
-                blurRadius: isListening ? 20 : 15,
-                spreadRadius: isListening ? 3 : 2,
+                blurRadius: isListening ? 20 : 10,
+                spreadRadius: isListening ? 2 : 1,
               ),
             ],
           ),
@@ -101,6 +99,7 @@ class ChatInput extends GetView<ChatController> {
             horizontal: 20,
             vertical: 12,
           ),
+          isDense: true,
         ),
         maxLines: null,
         textInputAction: TextInputAction.send,
@@ -112,7 +111,7 @@ class ChatInput extends GetView<ChatController> {
   Widget _buildSendButton() {
     return Obx(() {
       final isSending = controller.isSendingMessage.value;
-      final hasText = controller.messageController.text.isNotEmpty;
+      // final hasText = controller.messageController.text.isNotEmpty;
 
       return GestureDetector(
         onTap: isSending ? null : controller.sendTextMessage,
@@ -133,8 +132,8 @@ class ChatInput extends GetView<ChatController> {
             boxShadow: [
               BoxShadow(
                 color: AppTheme.primaryPurple.withValues(alpha: 0.5),
-                blurRadius: 15,
-                spreadRadius: 2,
+                blurRadius: 10,
+                spreadRadius: 1,
               ),
             ],
           ),

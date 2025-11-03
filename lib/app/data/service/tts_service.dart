@@ -1,10 +1,19 @@
+import 'dart:developer';
+
 import 'package:ai_voice_chat/app/core/app_constants.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+
 
 class TtsService {
   final FlutterTts _flutterTts = FlutterTts();
   bool _isInitialized = false;
   bool _isSpeaking = false;
+  bool _isPaused = false;
+
+  // Callbacks
+  Function()? _onStart;
+  Function()? _onComplete;
+  Function(String)? _onError;
 
   /// Initialize Text-to-Speech
   Future<void> initialize() async {
@@ -25,16 +34,40 @@ class TtsService {
 
       // Setup callbacks
       _flutterTts.setStartHandler(() {
+        log('🔊 TTS Started');
         _isSpeaking = true;
+        _isPaused = false;
+        _onStart?.call();
       });
 
       _flutterTts.setCompletionHandler(() {
+        log('✅ TTS Completed');
         _isSpeaking = false;
+        _isPaused = false;
+        _onComplete?.call();
+      });
+
+      _flutterTts.setCancelHandler(() {
+        log('❌ TTS Cancelled');
+        _isSpeaking = false;
+        _isPaused = false;
       });
 
       _flutterTts.setErrorHandler((msg) {
+        log('❌ TTS Error: $msg');
         _isSpeaking = false;
-        print('TTS Error: $msg');
+        _isPaused = false;
+        _onError?.call(msg);
+      });
+
+      _flutterTts.setPauseHandler(() {
+        log('⏸️ TTS Paused');
+        _isPaused = true;
+      });
+
+      _flutterTts.setContinueHandler(() {
+        log('▶️ TTS Continued');
+        _isPaused = false;
       });
 
       _isInitialized = true;
@@ -44,39 +77,71 @@ class TtsService {
   }
 
   /// Speak text
-  Future<void> speak(String text) async {
+  Future<void> speak(
+    String text, {
+    Function()? onStart,
+    Function()? onComplete,
+    Function(String)? onError,
+  }) async {
     if (!_isInitialized) {
       await initialize();
     }
+
+    // Set callbacks
+    _onStart = onStart;
+    _onComplete = onComplete;
+    _onError = onError;
 
     if (_isSpeaking) {
       await stop();
     }
 
     try {
+      log(
+        '🎤 Speaking: ${text.substring(0, text.length > 50 ? 50 : text.length)}...',
+      );
       await _flutterTts.speak(text);
     } catch (e) {
+      _isSpeaking = false;
+      _isPaused = false;
       throw Exception('Failed to speak: $e');
     }
   }
 
   /// Stop speaking
   Future<void> stop() async {
-    if (_isSpeaking) {
+    log('⏹️ Stopping TTS');
+    if (_isSpeaking || _isPaused) {
       await _flutterTts.stop();
       _isSpeaking = false;
+      _isPaused = false;
     }
   }
 
   /// Pause speaking
   Future<void> pause() async {
-    if (_isSpeaking) {
+    log('⏸️ Pausing TTS');
+    if (_isSpeaking && !_isPaused) {
       await _flutterTts.pause();
+      _isPaused = true;
+    }
+  }
+
+  /// Resume speaking
+  Future<void> resume() async {
+    log('▶️ Resuming TTS');
+    if (_isPaused) {
+      // Note: flutter_tts doesn't have a resume method
+      // We need to stop and restart
+      _isPaused = false;
     }
   }
 
   /// Check if currently speaking
-  bool get isSpeaking => _isSpeaking;
+  bool get isSpeaking => _isSpeaking && !_isPaused;
+
+  /// Check if paused
+  bool get isPaused => _isPaused;
 
   /// Set speech rate (0.0 - 1.0)
   Future<void> setSpeechRate(double rate) async {
@@ -112,7 +177,9 @@ class TtsService {
 
   /// Dispose resources
   void dispose() {
+    log('🗑️ Disposing TTS');
     _flutterTts.stop();
     _isSpeaking = false;
+    _isPaused = false;
   }
 }

@@ -47,12 +47,12 @@ class AppTheme {
         primary: primaryPurple,
         secondary: lightPurple,
         surface: surfaceColor,
-        background: darkBackground,
+        // background: darkBackground,
         error: Color(0xFFFF6B6B),
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: textPrimary,
-        onBackground: textPrimary,
+        // onBackground: textPrimary,
       ),
 
       // App Bar Theme
@@ -123,11 +123,11 @@ class AppTheme {
         fillColor: cardBackground,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: primaryPurple, width: 2),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: surfaceColor, width: 1),
+          borderSide: BorderSide(color: primaryPurple, width: 2),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

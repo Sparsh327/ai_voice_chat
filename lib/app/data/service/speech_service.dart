@@ -1,3 +1,7 @@
+// ignore_for_file: deprecated_member_use
+
+import 'dart:developer';
+
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -20,8 +24,8 @@ class SpeechService {
 
       // Initialize speech to text
       _isInitialized = await _speechToText.initialize(
-        onError: (error) => print('Speech error: $error'),
-        onStatus: (status) => print('Speech status: $status'),
+        onError: (error) => log('Speech error: $error'),
+        onStatus: (status) => log('Speech status: $status'),
       );
 
       return _isInitialized;
